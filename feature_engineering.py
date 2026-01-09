@@ -15,6 +15,3 @@ def hash_feature(value, num_buckets=10):
         int: 0 ile num_buckets-1 arasında bir değer
     """
     return hash(value) % num_buckets
-
-def hatali_fonksiyon(
-    return "This code is written to get errors.

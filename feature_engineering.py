@@ -16,3 +16,5 @@ def hash_feature(value, num_buckets=10):
     """
     return hash(value) % num_buckets
 
+def hatali_fonksiyon(
+    return "This code is written to get errors.

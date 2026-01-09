@@ -1,0 +1,52 @@
+name: MLOps CI/CD Pipeline
+
+on: [push]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu Çek (Checkout)
+        uses: actions/checkout@v3
+
+      - name: Python Kurulumu
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Bağımlılıkları Yükle
+        run: |
+          pip install -r requirements.txt
+          pip install pytest requests
+
+      - name: Linting (Kod Kalitesi)
+        run: |
+          # Hata varsa durdurur (exit-zero opsiyonunu kaldırdık)
+          pylint feature_engineering.py app.py || exit 1
+
+      - name: Unit Testler
+        run: |
+          python -m unittest tests/test_logic.py -v
+
+      - name: Paketi Oluştur (Docker Build)
+        run: |
+          docker build -t my-mlops-app .
+
+      - name: Uygulamayı Başlat (Staging Deployment)
+        run: |
+          docker run -d -p 5000:5000 --name test_container my-mlops-app
+          sleep 10 # Ayağa kalkmasını bekle
+
+      - name: Smoke Test
+        run: |
+          # Basit bir HTTP isteği ile health check
+          curl --fail http://localhost:5000/health || exit 1
+          # Python ile de test edebiliriz
+          python -m unittest tests/test_smoke.py -v
+
+      - name: Konteyneri Temizle
+        if: always()
+        run: |
+          docker stop test_container || true
+          docker rm test_container || true
+
